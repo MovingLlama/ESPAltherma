@@ -1,7 +1,7 @@
 //Setup your credentials and mqtt info here:
 //only change the value between the " " leave the rest of the line untouched.
 #define WIFI_SSID "TheLANdownunder"//**Your SSID here**
-#define WIFI_PWD "S3bast1an"//**Your password here** leave empty if open (bad!)
+#define WIFI_PWD ""//**Your password here** leave empty if open (bad!)
 
 //Uncomment this to set a static IP instead of DHCP for the ESP (Separate by commas instead of dots)
 //#define WIFI_IP 192, 168, 0, 5
