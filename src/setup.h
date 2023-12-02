@@ -4,13 +4,13 @@
 #define WIFI_PWD ""//**Your password here** leave empty if open (bad!)
 
 //Uncomment this to set a static IP instead of DHCP for the ESP (Separate by commas instead of dots)
-//#define WIFI_IP 192, 168, 0, 5
-//#define WIFI_SUBNET 255, 255, 255, 0
-//#define WIFI_GATEWAY 192, 168, 0, 1
-//#define WIFI_PRIMARY_DNS 8, 8, 8, 8     //optional
-//#define WIFI_SECONDARY_DNS 8, 8, 4, 4   //optional
+#define WIFI_IP 192, 168, 20, 5
+#define WIFI_SUBNET 255, 255, 255, 0
+#define WIFI_GATEWAY 192, 168, 20, 1
+#define WIFI_PRIMARY_DNS 192, 168, 31, 20    //optional
+#define WIFI_SECONDARY_DNS 192, 168, 31, 50  //optional
 
-#define MQTT_SERVER "mqtt.local.seyerl.eu"//**IP address here of your MQTT server**
+#define MQTT_SERVER "192.168.31.22"//**IP address here of your MQTT server**
 #define MQTT_USERNAME "espaltherma"//leave empty if not set (bad!)
 #define MQTT_PASSWORD "espaltherma"//leave empty if not set (bad!)
 #define MQTT_PORT 1883
@@ -31,8 +31,8 @@
 
 //Smart grid control - Optional:
 //Uncomment and set to enable SG mqtt functions
-#define PIN_SG1 32// Pin connected to dry contact SG 1 relay (normally open)
-#define PIN_SG2 33// Pin connected to dry contact SG 2 relay (normally open)
+//#define PIN_SG1 32// Pin connected to dry contact SG 1 relay (normally open)
+//#define PIN_SG2 33// Pin connected to dry contact SG 2 relay (normally open)
 // Define if your SG relay board is Low or High triggered (signal pins)
 // Only uncomment one of them
 #define SG_RELAY_HIGH_TRIGGER
@@ -55,9 +55,6 @@
 //Uncomment this if you want to activate the One Value <-> One Topic mode. Each value will be sent to a specific topic below 
 //#define ONEVAL_ONETOPIC
 //#define MQTT_OneTopic "espaltherma/OneATTR/" //Keep the ending "/" !!
-
-//Uncomment to disable common frequent log messages via MQTT to reduce network load
-//#define DISABLE_LOG_MESSAGES
 
 
 //Uncomment *ONE* of the following according to your installation.

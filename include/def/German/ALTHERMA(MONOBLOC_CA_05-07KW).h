@@ -3,7 +3,7 @@
 //  uncomment each value you want to query for your installation.
 
 LabelDef labelDefs[] = {
-//{0x00,0,801,0,-1,"*Kältemittel Typ"},
+{0x00,0,801,0,-1,"*Kältemittel Typ"},
 //{0x00,1,996,1,-1,"Override CMD:0x00 N_INV=1"},
 //{0x00,2,996,0,-1,"Override CMD:0x00 N_STD=0"},
 //{0x00,3,996,2,-1,"Override CMD:0x00 N_FAN=2"},
@@ -65,7 +65,7 @@ LabelDef labelDefs[] = {
 {0x20,10,105,2,1,"Flüssigkeitsleitungstemp. (R6T)"},
 {0x20,12,105,2,1,"Kühlkörpertemp."},
 {0x20,14,105,2,2,"Niederdruck"},
-//{0x20,14,405,2,1,"Niederdruck in °C"},
+{0x20,14,405,2,1,"Niederdruck in °C"},
 {0x21,0,105,2,-1,"INV Primärstrom (A)"},
 {0x21,2,105,2,-1,"Stromaufnahme INV-Verdichter (A)"},
 {0x21,4,101,2,-1,"Spannung (N-Phase) (V)"},
@@ -198,7 +198,7 @@ LabelDef labelDefs[] = {
 {0x62,8,307,1,-1,"Keine"},
 {0x62,8,306,1,-1,"Nicht im Einsatz 16"},
 {0x62,8,305,1,-1,"Nicht im Einsatz 17"},
-{0x62,8,304,1,-1,"Nicht im Einsatz 18"},
+{0x62,8,304,1,-1,"PHE-Heizung"},
 {0x62,8,303,1,-1,"Speicher vorheizen ein/aus"},
 {0x62,8,302,1,-1,"Umwälzpumpenbetrieb"},
 {0x62,8,301,1,-1,"Alarmausgabe"},

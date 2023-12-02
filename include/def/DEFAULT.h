@@ -61,7 +61,7 @@ LabelDef labelDefs[] = {
 //{0x20,6,105,2,1,"Suction pipe temp."},
 //{0x20,8,105,2,1,"Outdoor heat exchanger mid temp."},
 //{0x20,10,105,2,1,"Liquid pipe temp."},
-//{0x20,12,105,2,1,"INV fin temp."},
+//{0x20,12,105,2,1,"INV fin temp."}, 
 //{0x20,14,105,2,2,"Low Pressure"},
 //{0x20,14,405,2,1,"Low Pressure(T)"},
 //{0x20,16,105,2,-1,"Sensor data 9"},
