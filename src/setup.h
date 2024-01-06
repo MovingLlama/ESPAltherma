@@ -1,7 +1,7 @@
 //Setup your credentials and mqtt info here:
 //only change the value between the " " leave the rest of the line untouched.
 #define WIFI_SSID "TheLANdownunder"//**Your SSID here**
-#define WIFI_PWD ""//**Your password here** leave empty if open (bad!)
+#define WIFI_PWD "S3bast1an"//**Your password here** leave empty if open (bad!)
 
 //Uncomment this to set a static IP instead of DHCP for the ESP (Separate by commas instead of dots)
 #define WIFI_IP 192, 168, 20, 5
@@ -15,7 +15,7 @@
 #define MQTT_PASSWORD "espaltherma"//leave empty if not set (bad!)
 #define MQTT_PORT 1883
 
-#define FREQUENCY 10000 //query values every 30 sec
+#define FREQUENCY 30000 //query values every 30 sec
 
 #if defined(ARDUINO_M5Stick_C) || defined(ARDUINO_M5Stick_C_Plus)
 //Values used when **M5StickC** or **M5STickCPlus** environment is selected:
@@ -47,14 +47,17 @@
 #define SG_RELAY_INACTIVE_STATE LOW
 #endif
 
-#define MAX_MSG_SIZE 15120//max size of the json message sent in mqtt 
+#define MAX_MSG_SIZE 7120//max size of the json message sent in mqtt 
 
 //Uncomment this line if the JSON message should be in a Json Table format []. Use only for IOBroker Vis. 
 //#define JSONTABLE
 
 //Uncomment this if you want to activate the One Value <-> One Topic mode. Each value will be sent to a specific topic below 
-//#define ONEVAL_ONETOPIC
-//#define MQTT_OneTopic "espaltherma/OneATTR/" //Keep the ending "/" !!
+// #define ONEVAL_ONETOPIC
+// #define MQTT_OneTopic "espaltherma/OneATTR/" //Keep the ending "/" !!
+
+//Uncomment to disable common frequent log messages via MQTT to reduce network load
+//#define DISABLE_LOG_MESSAGES
 
 
 //Uncomment *ONE* of the following according to your installation.
@@ -95,7 +98,6 @@
 //#include "def/EKHWET-BAV3(MULTI DHW TANK).h"
 //#include "def/PROTOCOL_S_ROTEX.h"
 //#include "def/PROTOCOL_S.h"
-
 #include "def/German/ALTHERMA(MONOBLOC_CA_05-07KW).h"
 
 #ifndef LABELDEF
