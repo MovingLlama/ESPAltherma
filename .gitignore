@@ -10,4 +10,4 @@ contrib/ldd_decoder/bin/
 contrib/ldd_decoder/obj/
 contrib/ldd_decoder/label_defines.*
 src/my_setup.h
-include/def/German/ALTHERMA(MONOBLOC_CA_05-07KW).h
+DaikinLogger.sln
