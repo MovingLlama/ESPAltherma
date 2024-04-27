@@ -16,7 +16,7 @@
 #define MQTT_PORT 1883
 //#define MQTT_ENCRYPTED // uncomment if MQTT connection is encrypted via TLS
 
-#define FREQUENCY 30000 //query values every 30 sec
+#define FREQUENCY 15000 //query values every 15 sec
 
 #if defined(ARDUINO_M5Stick_C) || defined(ARDUINO_M5Stick_C_Plus) || defined(ARDUINO_M5Stick_C_Plus2)
 // Values used when M5StickC, M5STickCPlus or M5Stick_C_Plus2 environment is selected:
@@ -56,7 +56,7 @@
 #define SG_RELAY_INACTIVE_STATE LOW
 #endif
 
-#define MAX_MSG_SIZE 7120//max size of the json message sent in mqtt 
+#define MAX_MSG_SIZE 14240//max size of the json message sent in mqtt 
 
 //Uncomment this line if the JSON message should be in a Json Table format []. Use only for IOBroker Vis. 
 //#define JSONTABLE
@@ -119,8 +119,8 @@
 
 //#include "def/PROTOCOL_S_ROTEX.h"
 //#include "def/PROTOCOL_S.h"
-#include "def/German/ALTHERMA(MONOBLOC_CA_05-07KW).h"
-
+//#include "def/German/ALTHERMA(MONOBLOC_CA_05-07KW).h"
+#include "def/German/Altherma(EPRA D_D7 ETSH-X 16P30-50 E_E7 series 14-18kW-ECH2O).h"
 
 #ifndef LABELDEF
 #warning "NO DEFINITION SELECTED: Please select your heat pump definition in /src/setup.h -- Using default."
