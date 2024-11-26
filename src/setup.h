@@ -10,9 +10,9 @@
 #define WIFI_PRIMARY_DNS 192, 168, 31, 20    //optional
 #define WIFI_SECONDARY_DNS 192, 168, 31, 50  //optional
 
-#define MQTT_SERVER "192.168.31.22"//**IP address here of your MQTT server**
-#define MQTT_USERNAME "espaltherma"//leave empty if not set (bad!)
-#define MQTT_PASSWORD "espaltherma"//leave empty if not set (bad!)
+#define MQTT_SERVER "192.168.31.10"//**IP address here of your MQTT server**
+#define MQTT_USERNAME "mqtt_ha"//leave empty if not set (bad!)
+#define MQTT_PASSWORD "YUzJCpXoDQ7pm94b3ixwj6E6EE8pAwss"//leave empty if not set (bad!)
 #define MQTT_PORT 1883
 //#define MQTT_ENCRYPTED // uncomment if MQTT connection is encrypted via TLS
 
