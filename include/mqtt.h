@@ -26,6 +26,19 @@ WiFiClient espClient;
 #endif
 PubSubClient client(espClient);
 
+void sanitizeName(const char* input, char* output) {
+  int j = 0;
+  for (int i = 0; i < strlen(input); i++) {
+    char c = input[i];
+    if (isalnum(c)) {
+      output[j++] = c;
+    } else if (c == ' ' || c == '-' || c == '/' || c == '.') {
+      output[j++] = '_';
+    }
+  }
+  output[j] = '\0';
+}
+
 void sendValues()
 {
   Serial.printf("Sending values in MQTT.\n");
@@ -73,6 +86,72 @@ void readEEPROM(){
   }
 }
 
+void getSensorProperties(const char* label, char* unit, char* dev_class, char* state_class) {
+  unit[0] = '\0';
+  dev_class[0] = '\0';
+  state_class[0] = '\0';
+
+  String l = String(label);
+  l.toLowerCase();
+
+  // Exclude boolean/state terms
+  if (l.indexOf("aktiv") != -1 || l.indexOf("retry") != -1 || l.indexOf("schutz") != -1 || 
+      l.indexOf("ein/aus") != -1 || l.indexOf("on/off") != -1 || l.indexOf("status") != -1 ||
+      l.indexOf("fehler") != -1 || l.indexOf("code") != -1 || l.indexOf("modus") != -1 || l.indexOf("mode") != -1) {
+    return; // Leave empty for state strings
+  }
+
+  if (l.indexOf("°c") != -1 || l.indexOf("temp") != -1) {
+    strcpy(unit, "°C");
+    strcpy(dev_class, "temperature");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(a)") != -1 || l.indexOf("strom") != -1) {
+    strcpy(unit, "A");
+    strcpy(dev_class, "current");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("kwh") != -1 || l.indexOf("energie") != -1 || l.indexOf("energy") != -1) {
+    strcpy(unit, "kWh");
+    strcpy(dev_class, "energy");
+    strcpy(state_class, "total_increasing");
+  } else if (l.indexOf("(w)") != -1 || l.indexOf("leistung") != -1) {
+    strcpy(unit, "W");
+    strcpy(dev_class, "power");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(v)") != -1 || l.indexOf("spannung") != -1) {
+    strcpy(unit, "V");
+    strcpy(dev_class, "voltage");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(rps)") != -1 || l.indexOf("frequenz") != -1 || l.indexOf("frequency") != -1 || l.indexOf("hz") != -1) {
+    strcpy(unit, "Hz");
+    strcpy(dev_class, "frequency");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(bar)") != -1 || l.indexOf("druck") != -1) {
+    strcpy(unit, "bar");
+    strcpy(dev_class, "pressure");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(%)") != -1 || l.indexOf("prozent") != -1 || l.indexOf("percent") != -1) {
+    strcpy(unit, "%");
+    strcpy(dev_class, "");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(l/min)") != -1 || l.indexOf("durchfluss") != -1 || l.indexOf("flow") != -1) {
+    strcpy(unit, "L/min");
+    strcpy(dev_class, "");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("liter") != -1 || l.indexOf("volume") != -1) {
+    strcpy(unit, "L");
+    strcpy(dev_class, "water");
+    strcpy(state_class, "total_increasing");
+  } else if (l.indexOf("(pls)") != -1 || l.indexOf("pulse") != -1 || l.indexOf("step") != -1) {
+    strcpy(unit, "pls");
+    strcpy(dev_class, "");
+    strcpy(state_class, "measurement");
+  } else if (l.indexOf("(h)") != -1 || l.indexOf("stunden") != -1 || l.indexOf("hours") != -1) {
+    strcpy(unit, "h");
+    strcpy(dev_class, "duration");
+    strcpy(state_class, "total_increasing");
+  }
+}
+
 void reconnectMqtt()
 {
   // Loop until we're reconnected
@@ -84,9 +163,55 @@ void reconnectMqtt()
     if (client.connect("ESPAltherma-dev", MQTT_USERNAME, MQTT_PASSWORD, MQTT_lwt, 0, true, "Offline"))
     {
       Serial.println("connected!");
+      // Publish the all-in-one sensor config
       client.publish("homeassistant/sensor/espAltherma/config", "{\"name\":\"AlthermaSensors\",\"stat_t\":\"~/LWT\",\"avty_t\":\"~/LWT\",\"pl_avail\":\"Online\",\"pl_not_avail\":\"Offline\",\"uniq_id\":\"espaltherma\",\"device\":{\"identifiers\":[\"ESPAltherma\"]}, \"~\":\"espaltherma\",\"json_attr_t\":\"~/ATTR\"}", true);
+
+      // Publish sensor configuration for each selected label
+      for (auto &&label : labelDefs) {
+        char safeName[64];
+        sanitizeName(label.label, safeName);
+        
+        char topic[128];
+        snprintf(topic, sizeof(topic), "homeassistant/sensor/espAltherma/%s/config", safeName);
+        
+        char unit[16], dev_class[32], state_class[32];
+        getSensorProperties(label.label, unit, dev_class, state_class);
+
+        char properties_json[128] = "";
+        if (unit[0] != '\0') {
+          snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"unit_of_meas\":\"%s\"", unit);
+        }
+        if (dev_class[0] != '\0') {
+          snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"dev_cla\":\"%s\"", dev_class);
+        }
+        if (state_class[0] != '\0') {
+          snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"stat_cla\":\"%s\"", state_class);
+        }
+
+        char payload[768];
+        snprintf(payload, sizeof(payload), 
+          "{\"name\":\"%s\",\"stat_t\":\"~/ATTR\",\"val_tpl\":\"{{ value_json['%s'] }}\",\"avty_t\":\"~/LWT\",\"pl_avail\":\"Online\",\"pl_not_avail\":\"Offline\",\"uniq_id\":\"espaltherma_%s\"%s,\"device\":{\"identifiers\":[\"ESPAltherma\"],\"name\":\"ESPAltherma\",\"manufacturer\":\"ESPAltherma\",\"model\":\"ESP32\"},\"~\":\"espaltherma\"}", 
+          label.label, label.label, safeName, properties_json);
+        
+        client.publish(topic, payload, true);
+      }
+
+      // Publish static/system sensors
+      const char* staticSensors[] = {"WifiRSSI", "FreeMem", "M5BatV", "M5VIN", "M5AmpIn", "M5BatCur", "M5BatPwr"};
+      for (int s = 0; s < sizeof(staticSensors) / sizeof(staticSensors[0]); s++) {
+        char topic[128];
+        snprintf(topic, sizeof(topic), "homeassistant/sensor/espAltherma/%s/config", staticSensors[s]);
+        
+        char payload[512];
+        snprintf(payload, sizeof(payload), 
+          "{\"name\":\"%s\",\"stat_t\":\"~/ATTR\",\"val_tpl\":\"{{ value_json['%s'] }}\",\"avty_t\":\"~/LWT\",\"pl_avail\":\"Online\",\"pl_not_avail\":\"Offline\",\"uniq_id\":\"espaltherma_%s\",\"device\":{\"identifiers\":[\"ESPAltherma\"],\"name\":\"ESPAltherma\",\"manufacturer\":\"ESPAltherma\",\"model\":\"ESP32\"},\"~\":\"espaltherma\"}", 
+          staticSensors[s], staticSensors[s], staticSensors[s]);
+        
+        client.publish(topic, payload, true);
+      }
+
       client.publish(MQTT_lwt, "Online", true);
-      client.publish("homeassistant/switch/espAltherma/config", "{\"name\":\"Altherma\",\"cmd_t\":\"~/POWER\",\"stat_t\":\"~/STATE\",\"pl_off\":\"OFF\",\"pl_on\":\"ON\",\"~\":\"espaltherma\"}", true);
+      client.publish("homeassistant/switch/espAltherma/config", "{\"name\":\"Altherma\",\"cmd_t\":\"~/POWER\",\"stat_t\":\"~/STATE\",\"pl_off\":\"OFF\",\"pl_on\":\"ON\",\"~\":\"espaltherma\",\"device\":{\"identifiers\":[\"ESPAltherma\"]}}", true);
 
       // Subscribe
       client.subscribe("espaltherma/POWER");
