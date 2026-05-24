@@ -75,6 +75,16 @@ void updateValues(char regID)
     client.publish(topicBuff, labels[i]->asString);
 
     #else
+    
+    // Check if the value is valid and hasn't been published to HA config yet
+    if (!labels[i]->ha_config_published && labels[i]->asString[0] != '\0' && 
+        strcmp(labels[i]->asString, "---") != 0 && 
+        strcasecmp(labels[i]->asString, "nan") != 0 &&
+        strncmp(labels[i]->asString, "Conv", 4) != 0) {
+      publish_ha_config(labels[i]);
+      labels[i]->ha_config_published = true;
+    }
+
     if (alpha){      
 
       snprintf(jsonbuff + strlen(jsonbuff), MAX_MSG_SIZE - strlen(jsonbuff), "\"%s\":\"%s\",", labels[i]->label, labels[i]->asString);

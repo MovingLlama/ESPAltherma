@@ -152,6 +152,37 @@ void getSensorProperties(const char* label, char* unit, char* dev_class, char* s
   }
 }
 
+void publish_ha_config(LabelDef *label) {
+  char safeName[64];
+  sanitizeName(label->label, safeName);
+  
+  char topic[128];
+  snprintf(topic, sizeof(topic), "homeassistant/sensor/espAltherma/%s/config", safeName);
+  
+  char unit[16], dev_class[32], state_class[32];
+  getSensorProperties(label->label, unit, dev_class, state_class);
+
+  char properties_json[128] = "";
+  if (unit[0] != '\0') {
+    snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"unit_of_meas\":\"%s\"", unit);
+  }
+  if (dev_class[0] != '\0') {
+    snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"dev_cla\":\"%s\"", dev_class);
+  }
+  if (state_class[0] != '\0') {
+    snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"stat_cla\":\"%s\"", state_class);
+  }
+
+  char payload[768];
+  snprintf(payload, sizeof(payload), 
+    "{\"name\":\"%s\",\"stat_t\":\"~/ATTR\",\"val_tpl\":\"{{ value_json['%s'] }}\",\"avty_t\":\"~/LWT\",\"pl_avail\":\"Online\",\"pl_not_avail\":\"Offline\",\"uniq_id\":\"espaltherma_%s\"%s,\"device\":{\"identifiers\":[\"ESPAltherma\"],\"name\":\"ESPAltherma\",\"manufacturer\":\"ESPAltherma\",\"model\":\"ESP32\"},\"~\":\"espaltherma\"}", 
+    label->label, label->label, safeName, properties_json);
+  
+  client.publish(topic, payload, true);
+}
+
+bool startup_cleared = false;
+
 void reconnectMqtt()
 {
   // Loop until we're reconnected
@@ -166,34 +197,24 @@ void reconnectMqtt()
       // Publish the all-in-one sensor config
       client.publish("homeassistant/sensor/espAltherma/config", "{\"name\":\"AlthermaSensors\",\"stat_t\":\"~/LWT\",\"avty_t\":\"~/LWT\",\"pl_avail\":\"Online\",\"pl_not_avail\":\"Offline\",\"uniq_id\":\"espaltherma\",\"device\":{\"identifiers\":[\"ESPAltherma\"]}, \"~\":\"espaltherma\",\"json_attr_t\":\"~/ATTR\"}", true);
 
-      // Publish sensor configuration for each selected label
+      if (!startup_cleared) {
+        // Delete old sensor configurations from Home Assistant on first boot
+        for (auto &&label : labelDefs) {
+          char safeName[64];
+          sanitizeName(label.label, safeName);
+          
+          char topic[128];
+          snprintf(topic, sizeof(topic), "homeassistant/sensor/espAltherma/%s/config", safeName);
+          
+          // Publish empty payload to delete retained message
+          client.publish(topic, "", true);
+        }
+        startup_cleared = true;
+      }
+
+        // Reset publish flag so sensors are re-published when valid values are read
       for (auto &&label : labelDefs) {
-        char safeName[64];
-        sanitizeName(label.label, safeName);
-        
-        char topic[128];
-        snprintf(topic, sizeof(topic), "homeassistant/sensor/espAltherma/%s/config", safeName);
-        
-        char unit[16], dev_class[32], state_class[32];
-        getSensorProperties(label.label, unit, dev_class, state_class);
-
-        char properties_json[128] = "";
-        if (unit[0] != '\0') {
-          snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"unit_of_meas\":\"%s\"", unit);
-        }
-        if (dev_class[0] != '\0') {
-          snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"dev_cla\":\"%s\"", dev_class);
-        }
-        if (state_class[0] != '\0') {
-          snprintf(properties_json + strlen(properties_json), sizeof(properties_json) - strlen(properties_json), ",\"stat_cla\":\"%s\"", state_class);
-        }
-
-        char payload[768];
-        snprintf(payload, sizeof(payload), 
-          "{\"name\":\"%s\",\"stat_t\":\"~/ATTR\",\"val_tpl\":\"{{ value_json['%s'] }}\",\"avty_t\":\"~/LWT\",\"pl_avail\":\"Online\",\"pl_not_avail\":\"Offline\",\"uniq_id\":\"espaltherma_%s\"%s,\"device\":{\"identifiers\":[\"ESPAltherma\"],\"name\":\"ESPAltherma\",\"manufacturer\":\"ESPAltherma\",\"model\":\"ESP32\"},\"~\":\"espaltherma\"}", 
-          label.label, label.label, safeName, properties_json);
-        
-        client.publish(topic, payload, true);
+        label.ha_config_published = false;
       }
 
       // Publish static/system sensors
